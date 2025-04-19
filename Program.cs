@@ -4,108 +4,80 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lab5_Static
+namespace Lab5_Inheritance
 {
-    public class Product
+    public class BankAccount
     {
-        public int ProductID { get; set; }
-        public string name { get; set; }
+        public int AccountNumber { get; set; }
+        public string AccountHolder { get; set; }
 
-        public int QuantityinStock { get; set; }
+        public double Balance {  get; protected set; }
+        private static int nextAccountNumber = 1;
 
-        private static int nextProductID = 1;
-        
-
-        static Product()
+        public BankAccount(string accountHolder,double balance)
         {
-            nextProductID = 1;
+            
+            AccountHolder= accountHolder;
+            AccountNumber = GenerateAccountNumber();
+            Balance = balance;
         }
-        public Product(string name, int QuantityinStock)
+        private int GenerateAccountNumber()
         {
-            this.name = name;
-            this.QuantityinStock = QuantityinStock;
-            ProductID = GenerateProductID();
-        }
-        public static int GenerateProductID()
-        {
-            return nextProductID++;
-        }
-        public void DisplayInfo()
-        {
-            Console.WriteLine($"Product id= {ProductID},Name = {name},Quantity = {QuantityinStock}");
+            return nextAccountNumber++;
         }
     }
-    public class Inventory
-    {
-        public static Product[] products { get; set; }
-        public static int Count { get; set; } = 0;
 
-        static Inventory()
+    public class SavingAccounts : BankAccount
+    {
+        public double InterestRate {  get; private set; }
+
+        public SavingAccounts(string accountHolder,double balance,double interestRate):base(accountHolder,balance)
         {
-            products = new Product[10];
-            Count = 0;
+            InterestRate = interestRate;
         }
-        public static void AddProduct(string Name, int Quan)
+
+        public double CalculateIntersest(int months)
         {
-            Product newproduct = new Product(Name, Quan);
-            products[Count++] = newproduct;
+            return Balance * InterestRate * months / 12;
         }
-        public static void RemoveProduct(int P_Id, int P_Quan)
+    }
+
+    public class CheckingAccount : BankAccount
+    {
+        public double OverdraftLimit { get; private set; }
+
+        public CheckingAccount(string accountHolder, double balance,double overdraftLimit):base(accountHolder,balance)
         {
-            for (int i = 0; i < Count; i++)
+            OverdraftLimit = overdraftLimit;
+        }
+
+        public void Withdraw(double amount)
+        {
+            if(Balance-amount >= OverdraftLimit)
             {
-                if (products[i].ProductID == P_Id)
-                {
-                    products[i].QuantityinStock -= P_Quan;
-                }
+                Console.WriteLine("withdraw Successful");
             }
-        }
-        public static void DisplayInventory()
-        {
-            for (int i = 0; i < Count; i++)
+            else
             {
-                products[i].DisplayInfo();
+                Console.WriteLine($"Withdrawl not successfull for exceeding the limit {amount}");
             }
         }
     }
-    public static class SimpleInventoryUtilities
-    {
-        public static int GetTotalProducts()
-        {
-            return Inventory.Count;
-        }
-        public static int GetProductcount(int ID)
-        {
-            for (int i = 0; i < Inventory.Count; i++)
-            {
-                if(Inventory.products[i].ProductID == ID)
-                {
-                    return Inventory.products[i].QuantityinStock;
-                }
-            }
-            return 0;
-        }
-    } 
     internal class Program
     {
         static void Main(string[] args)
         {
-            Inventory.AddProduct("Soap", 2);
-            Inventory.AddProduct("Dustbin", 5);
-            Inventory.AddProduct("Toys", 3);
+            SavingAccounts sv_account = new SavingAccounts("Seerat", 5000, 0.03);
+            Console.WriteLine($"Saving ACCount Information=Account HolderName= {sv_account.AccountHolder},Account Number = {sv_account.AccountNumber}, Balance = {sv_account.Balance}, Interest Rate = {sv_account.InterestRate}");
+            Console.WriteLine("*****************************");
+            double interest_rate=sv_account.CalculateIntersest(3);
+            Console.WriteLine($"Interest Rate for 3 months = {interest_rate}");
+            Console.WriteLine("**********************************");
 
-            Inventory.DisplayInventory();
-            Inventory.RemoveProduct(2,1);
-            Console.WriteLine("*******************************");
-            Inventory.DisplayInventory();
-            Console.WriteLine("*******************************");
-
-            var temp=SimpleInventoryUtilities.GetTotalProducts();
-            Console.WriteLine($"Total Products = {temp}");
-            var Product_count = SimpleInventoryUtilities.GetProductcount(3);
-            Console.WriteLine($"Product Counts is {Product_count}");
-
-            Console.ReadLine();
+            CheckingAccount CH_Account = new CheckingAccount("Azhar", 2000, 5000);
+            Console.WriteLine($"Checking Account Informtiom = Account Holdr Name: {CH_Account.AccountHolder},Account Number = {CH_Account.AccountNumber}, Balance = {CH_Account.Balance}, Interest Rate = {CH_Account.OverdraftLimit}");
+            Console.WriteLine("*********************************");
+            CH_Account.Withdraw(1000);
         }
     }
 }
